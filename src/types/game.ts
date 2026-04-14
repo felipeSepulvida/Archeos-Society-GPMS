@@ -23,3 +23,21 @@ export type Color =
     | "YELLOW"  // Africa         - Great Zimbabwe (genérico)
     | "PINK"    // Asia           - Sigirîya (genérico)
     | "PURPLE"; // Oceania        - Rapa Nui (genérico)
+
+/**
+ * Carta de expedição. Pode ser uma carta de profissão (com cor + role)
+ * ou uma carta especial de Macaco (sem profissão nem cor).
+ */
+export interface ProfessionCard {
+  id: string;
+  kind: "PROFESSION";
+  role: Role;
+  color: Color;
+}
+
+export interface MonkeyCard {
+  id: string;
+  kind: "MONKEY";
+}
+
+export type Card = ProfessionCard | MonkeyCard;
