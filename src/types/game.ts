@@ -41,3 +41,25 @@ export interface MonkeyCard {
 }
 
 export type Card = ProfessionCard | MonkeyCard;
+
+/**
+ * Estado de cada jogador.
+ */
+export interface PlayerState {
+  id: string;
+  name: string;
+  /** Cartas na mão (escondidas dos outros jogadores). */
+  hand: Card[];
+  /** Posição de seu veículo em cada sítio (chave = siteId). */
+  vehiclePositions: Record<string, number>;
+  /** Pontuação total acumulada. */
+  score: number;
+  /** Posição na trilha do Linguista (0..N). */
+  linguistPosition: number;
+  /** Indica se este jogador detém o quadro do Botânico no momento. */
+  hasBotanistFrame: boolean;
+  /** Tamanho da expedição que está atualmente sob o quadro do Botânico. */
+  botanistFrameSize: number;
+  /** Tokens de Curador coletados no museu (uma cor de cada vez). */
+  curatorRelics: Color[];
+}
