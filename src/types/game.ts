@@ -43,6 +43,21 @@ export interface MonkeyCard {
 export type Card = ProfessionCard | MonkeyCard;
 
 /**
+ * Sítio arqueológico (trilha). Cada um tem 7 espaços (0..6),
+ * com pontos por espaço e threshold de tamanho de expedição
+ * necessário para avançar a partir do espaço atual.
+ */
+export interface Site {
+  id: string;
+  name: string;
+  color: Color;
+  /** Pontos ganhos no fim da temporada por estar em cada espaço (índice = espaço). */
+  pointsBySpace: number[];
+  /** Threshold mínimo de tamanho de expedição para avançar a PARTIR do espaço i. */
+  thresholds: number[];
+}
+
+/**
  * Estado de cada jogador.
  */
 export interface PlayerState {
