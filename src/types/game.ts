@@ -67,6 +67,8 @@ export interface PlayerState {
   hand: Card[];
   /** Posição de seu veículo em cada sítio (chave = siteId). */
   vehiclePositions: Record<string, number>;
+  /** Expedições já lançadas nesta partida (conservadas para tie-break). */
+  playedExpeditions: PlayedExpedition[];
   /** Pontuação total acumulada. */
   score: number;
   /** Posição na trilha do Linguista (0..N). */
@@ -77,4 +79,108 @@ export interface PlayerState {
   botanistFrameSize: number;
   /** Tokens de Curador coletados no museu (uma cor de cada vez). */
   curatorRelics: Color[];
+  /**
+   * Buffer de cartas que serão devolvidas ao display ao final do turno.
+   * Usado pelo Cartógrafo: quando ele lidera uma expedição e avança veículo,
+   * recebe direito a uma 2ª expedição ANTES de devolver a mão. As cartas
+   * não usadas na 1ª expedição ficam aqui temporariamente e:
+   *   - permanecem disponíveis para compor a 2ª expedição (se o jogador
+   *     optar pelo bônus), retornando à `hand` antes da 2ª expedição;
+   *   - são despejadas no display ao final do turno.
+   * Em todas as outras situações este buffer fica vazio.
+   */
+  pendingDisplayReturn: Card[];
+}
+
+/**
+ * Uma expedição já lançada e mantida na frente do jogador.
+ */
+export interface PlayedExpedition {
+  /** Identificador único da expedição (para UI). */
+  id: string;
+  /** Carta líder. */
+  leader: ProfessionCard;
+  /** Cartas adicionais (excluindo o líder). */
+  followers: Card[]; // pode incluir Mercenários em outras expansões; aqui só PROFESSION
+  /** Traço escolhido como elo da expedição (cor ou role). */
+  bond: { type: "COLOR"; color: Color } | { type: "ROLE"; role: Role };
+  /** Em qual temporada foi lançada (1, 2, ...). */
+  season: number;
+}
+
+/**
+ * Em qual fase do turno o sistema está. Permite habilidades que
+ * concedem expedições extras (Cartógrafo) ou exigem decisões adicionais.
+ */
+export type TurnPhase =
+    | "AWAITING_ACTION"           // jogador deve escolher GAIN_CARD ou PLAY_EXPEDITION
+    | "BOTANIST_RESOLUTION"       // [reservado] resolução adicional (não usada na v1)
+    | "CARTOGRAPHER_BONUS"        // jogador pode jogar 1 expedição extra (opcional)
+    | "TURN_END";                 // turno encerrado, passar para o próximo jogador
+
+/** Fase global da partida. */
+export type GamePhase =
+    | "SETUP"
+    | "PLAYING"
+    | "SEASON_END"
+    | "GAME_END";
+
+/**
+ * Estado completo da partida. Toda a lógica do motor opera sobre este objeto.
+ */
+export interface GameState {
+  id: string;
+  createdAt: string;
+  phase: GamePhase;
+  players: PlayerState[];
+  currentPlayerIndex: number;
+  /** Temporada atual (1 ou 2 para 2-3 jogadores). */
+  season: number;
+  /** Total de temporadas a jogar (2 para 2-3 jogadores). */
+  totalSeasons: number;
+  /** Baralho (topo = última posição do array). */
+  deck: Card[];
+  /** Fileira (cartas viradas para cima disponíveis para recrutar). */
+  display: Card[];
+  /** Quantos macacos já foram revelados nesta temporada. */
+  monkeysRevealed: number;
+  /** Sítios arqueológicos da partida. */
+  sites: Site[];
+  /** Log de eventos (para auditoria e UI). */
+  log: GameLogEntry[];
+  /** Fase do turno corrente. */
+  turnPhase: TurnPhase;
+  /** Vencedor (apenas quando phase === "GAME_END"). */
+  winnerId?: string;
+}
+
+/** Entrada do log para feedback ao usuário. */
+export interface GameLogEntry {
+  at: string;
+  message: string;
+  /** Identificador do jogador relacionado, se aplicável. */
+  playerId?: string;
+}
+
+// =============================================================================
+// Inputs de ações (API REST)
+// =============================================================================
+
+export type GameAction =
+    | { type: "GAIN_FROM_DISPLAY"; cardId: string }
+    | { type: "GAIN_FROM_DECK" }
+    | {
+  type: "PLAY_EXPEDITION";
+  leaderCardId: string;
+  followerCardIds: string[];
+  bond: { type: "COLOR"; color: Color } | { type: "ROLE"; role: Role };
+  /** Para o Cartógrafo: deseja avançar veículo no sítio da cor do líder? */
+  advanceVehicle?: boolean;
+  /** Para o Curador: deseja coletar relíquia? */
+  useCuratorEffect?: boolean;
+}
+    | { type: "SKIP_CARTOGRAPHER_BONUS" };
+
+export interface CreateGameInput {
+  playerNames: string[]; // 2 ou 3
 }
