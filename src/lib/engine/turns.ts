@@ -28,10 +28,45 @@ function findCardIndex(cards: Card[], cardId: string): number {
 }
 
 // =============================================================================
-// RF04 - Recrutar (mesa/display)
+// Aplicação de ações
 // =============================================================================
 
-export function gainCardFromDisplay(state: GameState, cardId: string): GameState {
+export function applyAction(
+    state: GameState,
+    playerId: string,
+    action: GameAction,
+): GameState {
+  if (state.phase === "GAME_END") {
+    throw new Error("A partida já terminou.");
+  }
+  if (state.phase !== "PLAYING") {
+    throw new Error(`Ação inválida na fase ${state.phase}.`);
+  }
+  const player = currentPlayer(state);
+  if (player.id !== playerId) {
+    throw new Error(`Não é o turno de ${playerId}. É a vez de ${player.id}.`);
+  }
+
+  switch (action.type) {
+    case "GAIN_FROM_DISPLAY":
+      return doGainFromDisplay(state, action.cardId);
+    case "GAIN_FROM_DECK":
+      return doGainFromDeck(state);
+    case "PLAY_EXPEDITION":
+      throw new Error("Lançar expedição ainda não implementado.");
+    case "SKIP_CARTOGRAPHER_BONUS":
+      throw new Error("Bônus do Cartógrafo ainda não implementado.");
+  }
+}
+
+// =============================================================================
+// RF04 - Recrutar
+// =============================================================================
+
+function doGainFromDisplay(state: GameState, cardId: string): GameState {
+  if (state.turnPhase !== "AWAITING_ACTION") {
+    throw new Error("Não é momento de recrutar uma carta.");
+  }
   const player = currentPlayer(state);
   if (player.hand.length >= MAX_HAND_SIZE) {
     throw new Error(
@@ -49,10 +84,13 @@ export function gainCardFromDisplay(state: GameState, cardId: string): GameState
       `${player.name} recrutou uma carta da fileira.`,
       player.id,
   );
-  return state;
+  return endTurn(state);
 }
 
-export function gainCardFromDeck(state: GameState): GameState {
+function doGainFromDeck(state: GameState): GameState {
+  if (state.turnPhase !== "AWAITING_ACTION") {
+    throw new Error("Não é momento de comprar uma carta.");
+  }
   const player = currentPlayer(state);
   if (player.hand.length >= MAX_HAND_SIZE) {
     throw new Error(
@@ -69,5 +107,17 @@ export function gainCardFromDeck(state: GameState): GameState {
       `${player.name} comprou uma carta do baralho.`,
       player.id,
   );
+
+  return endTurn(state);
+}
+
+// =============================================================================
+// Encerramento do turno
+// =============================================================================
+
+function endTurn(state: GameState): GameState {
+  state.turnPhase = "AWAITING_ACTION";
+  state.currentPlayerIndex =
+      (state.currentPlayerIndex + 1) % state.players.length;
   return state;
 }
