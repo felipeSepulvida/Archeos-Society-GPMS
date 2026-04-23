@@ -1,8 +1,11 @@
+import { validateExpedition } from "./validation";
 import type {
   Card,
   GameAction,
   GameState,
+  PlayedExpedition,
   PlayerState,
+  ProfessionCard,
 } from "@/types/game";
 
 const MAX_HAND_SIZE = 10;
@@ -53,7 +56,7 @@ export function applyAction(
     case "GAIN_FROM_DECK":
       return doGainFromDeck(state);
     case "PLAY_EXPEDITION":
-      throw new Error("Lançar expedição ainda não implementado.");
+      return doPlayExpedition(state, action);
     case "SKIP_CARTOGRAPHER_BONUS":
       throw new Error("Bônus do Cartógrafo ainda não implementado.");
   }
@@ -107,6 +110,92 @@ function doGainFromDeck(state: GameState): GameState {
       `${player.name} comprou uma carta do baralho.`,
       player.id,
   );
+
+  return endTurn(state);
+}
+
+// =============================================================================
+// RF05/RF06 - Lançar expedição
+// =============================================================================
+
+function doPlayExpedition(
+    state: GameState,
+    action: Extract<GameAction, { type: "PLAY_EXPEDITION" }>,
+): GameState {
+  if (state.turnPhase !== "AWAITING_ACTION") {
+    throw new Error("Não é momento de lançar uma expedição.");
+  }
+
+  const player = currentPlayer(state);
+
+  // Localiza líder na mão
+  const leaderIdx = findCardIndex(player.hand, action.leaderCardId);
+  if (leaderIdx < 0) {
+    throw new Error("Carta líder não está na mão.");
+  }
+  const leader = player.hand[leaderIdx];
+  if (leader.kind !== "PROFESSION") {
+    throw new Error("Macacos não podem ser líderes.");
+  }
+
+  // Localiza seguidores
+  const followers: ProfessionCard[] = [];
+  const followerIdxs = new Set<number>();
+  for (const fid of action.followerCardIds) {
+    if (fid === action.leaderCardId) {
+      throw new Error("Líder não pode estar duplicado nos seguidores.");
+    }
+    const idx = findCardIndex(player.hand, fid);
+    if (idx < 0) {
+      throw new Error(`Seguidor ${fid} não está na mão.`);
+    }
+    if (followerIdxs.has(idx)) {
+      throw new Error("Seguidor duplicado.");
+    }
+    followerIdxs.add(idx);
+    const c = player.hand[idx];
+    if (c.kind !== "PROFESSION") {
+      throw new Error("Macacos não podem entrar em expedições.");
+    }
+    followers.push(c);
+  }
+
+  // Valida regras de compatibilidade
+  const validation = validateExpedition({
+    leader,
+    followers,
+    bond: action.bond,
+  });
+  if (!validation.ok) {
+    throw new Error(validation.reason);
+  }
+
+  // Remove cartas usadas (líder + seguidores) da mão
+  const usedIds = new Set<string>([
+    leader.id,
+    ...followers.map((f) => f.id),
+  ]);
+  const remaining = player.hand.filter((c) => !usedIds.has(c.id));
+  player.hand = [];
+
+  const expedition: PlayedExpedition = {
+    id: `exp_${player.id}_${player.playedExpeditions.length + 1}_s${state.season}`,
+    leader,
+    followers,
+    bond: action.bond,
+    season: state.season,
+  };
+  player.playedExpeditions.push(expedition);
+
+  const expeditionSize = 1 + followers.length;
+  logEvent(
+      state,
+      `${player.name} lançou expedição (líder: ${leader.role}/${leader.color}, tamanho ${expeditionSize}).`,
+      player.id,
+  );
+
+  // Devolve cartas restantes ao display (RF06)
+  state.display.push(...remaining);
 
   return endTurn(state);
 }
