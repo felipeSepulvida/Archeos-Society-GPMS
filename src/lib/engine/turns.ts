@@ -1,11 +1,13 @@
 import { validateExpedition } from "./validation";
 import type {
   Card,
+  Color,
   GameAction,
   GameState,
   PlayedExpedition,
   PlayerState,
   ProfessionCard,
+  Site,
 } from "@/types/game";
 
 const MAX_HAND_SIZE = 10;
@@ -194,10 +196,60 @@ function doPlayExpedition(
       player.id,
   );
 
+  // RF07 - Avanço em trilha (cor do líder)
+  //  - Estudante: NÃO pode avançar veículos (regra mandatória).
+  if (leader.role !== "STUDENT") {
+    const advanced = tryAdvanceVehicleAtSiteOfColor(
+        state,
+        player,
+        leader.color,
+        expeditionSize,
+    );
+    if (advanced) {
+      logEvent(
+          state,
+          `${player.name} avançou veículo na trilha ${leader.color}.`,
+          player.id,
+      );
+    }
+  }
+
   // Devolve cartas restantes ao display (RF06)
   state.display.push(...remaining);
 
   return endTurn(state);
+}
+
+// =============================================================================
+// RF07 - Progressão nos sítios arqueológicos
+// =============================================================================
+
+function tryAdvanceVehicleAtSiteOfColor(
+    state: GameState,
+    player: PlayerState,
+    color: Color,
+    expeditionSize: number,
+): boolean {
+  const site = state.sites.find((s) => s.color === color);
+  if (!site) return false;
+  return tryAdvanceVehicleAtSite(state, player, site, expeditionSize);
+}
+
+function tryAdvanceVehicleAtSite(
+    state: GameState,
+    player: PlayerState,
+    site: Site,
+    expeditionSize: number,
+): boolean {
+  const current = player.vehiclePositions[site.id] ?? 0;
+  const maxIndex = site.pointsBySpace.length - 1;
+  if (current >= maxIndex) return false;
+  const required = site.thresholds[current];
+  if (expeditionSize >= required) {
+    player.vehiclePositions[site.id] = current + 1;
+    return true;
+  }
+  return false;
 }
 
 // =============================================================================
