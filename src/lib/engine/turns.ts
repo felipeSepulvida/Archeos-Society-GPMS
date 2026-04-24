@@ -1,3 +1,4 @@
+import { startNewSeason } from "./setup";
 import { validateExpedition } from "./validation";
 import type {
   Card,
@@ -260,5 +261,53 @@ function endTurn(state: GameState): GameState {
   state.turnPhase = "AWAITING_ACTION";
   state.currentPlayerIndex =
       (state.currentPlayerIndex + 1) % state.players.length;
+  return state;
+}
+
+// =============================================================================
+// Fim de temporada
+// =============================================================================
+
+/**
+ * Finaliza a temporada atual. `triggererId` é o jogador que comprou o 3º macaco
+ * — ele se torna o primeiro jogador da próxima temporada (se houver).
+ *
+ * Estrutura básica: limpa mãos/display, computa pontos por sítios e por
+ * expedições, depois decide se inicia nova temporada ou encerra o jogo.
+ * Os efeitos de habilidades de fim-de-temporada (Botânico, Linguista,
+ * Fotógrafo) e o bônus do Curador serão integrados em tarefas posteriores.
+ */
+export function finalizeSeason(state: GameState, triggererId: string): GameState {
+  state.phase = "SEASON_END";
+
+  for (const p of state.players) p.hand = [];
+  state.display = [];
+
+  // Pontos por sítios (posição do veículo).
+  for (const p of state.players) {
+    let total = 0;
+    for (const s of state.sites) {
+      const pos = p.vehiclePositions[s.id] ?? 0;
+      total += s.pointsBySpace[pos] ?? 0;
+    }
+    p.score += total;
+    logEvent(
+        state,
+        `${p.name} ganha ${total} pts pelas posições nas trilhas.`,
+        p.id,
+    );
+  }
+
+  if (state.season >= state.totalSeasons) {
+    state.phase = "GAME_END";
+    logEvent(state, `Fim do jogo.`);
+    return state;
+  }
+
+  const triggererIdx = state.players.findIndex((p) => p.id === triggererId);
+  if (triggererIdx >= 0) state.currentPlayerIndex = triggererIdx;
+
+  startNewSeason(state);
+
   return state;
 }
