@@ -7,6 +7,10 @@ import type {
   ProfessionCard,
 } from "@/types/game";
 
+// =============================================================================
+// IDs e baralho fresco
+// =============================================================================
+
 // Contador de IDs determinístico (independente de Date.now ou random)
 function makeIdGen(prefix: string) {
   let n = 0;
@@ -112,6 +116,76 @@ export function createInitialGame(params: {
     ],
     turnPhase: "AWAITING_ACTION",
   };
+
+  return state;
+}
+
+/**
+ * Inicia uma nova temporada. Devolve baralho refeito, novo display e mãos
+ * zeradas com 1 carta para cada jogador.
+ *
+ * Importante: veículos e pontuações NÃO são resetados; expedições jogadas
+ * são removidas (cartas voltam ao baralho).
+ *
+ * NOTA: Macacos ainda não são reinseridos no baralho — será tratado pela
+ * tarefa "Cartas do Macaco".
+ */
+export function startNewSeason(state: GameState, seed?: number): GameState {
+  const rng = createRng(seed ?? Math.floor(Math.random() * 2 ** 31));
+
+  const allProfCards: ProfessionCard[] = [];
+  for (const p of state.players) {
+    for (const exp of p.playedExpeditions) {
+      const cards: Card[] = [exp.leader, ...exp.followers];
+      for (const c of cards) {
+        if (c.kind === "PROFESSION") allProfCards.push(c);
+      }
+    }
+    for (const c of p.hand) {
+      if (c.kind === "PROFESSION") allProfCards.push(c);
+    }
+    for (const c of p.pendingDisplayReturn) {
+      if (c.kind === "PROFESSION") allProfCards.push(c);
+    }
+    p.hand = [];
+    p.pendingDisplayReturn = [];
+    p.playedExpeditions = [];
+    p.hasBotanistFrame = false;
+    p.botanistFrameSize = 0;
+  }
+  for (const c of state.display) {
+    if (c.kind === "PROFESSION") allProfCards.push(c);
+  }
+  for (const c of state.deck) {
+    if (c.kind === "PROFESSION") allProfCards.push(c);
+  }
+
+  shuffleInPlace(allProfCards, rng);
+
+  for (const p of state.players) {
+    const drawn = allProfCards.pop();
+    if (!drawn) throw new Error("Baralho vazio ao iniciar nova temporada");
+    p.hand.push(drawn);
+  }
+
+  const displaySize = state.players.length + 2;
+  const display: Card[] = [];
+  for (let i = 0; i < displaySize; i++) {
+    const c = allProfCards.pop();
+    if (!c) throw new Error("Baralho insuficiente ao montar display");
+    display.push(c);
+  }
+
+  state.deck = [...allProfCards];
+  state.display = display;
+  state.monkeysRevealed = 0;
+  state.season += 1;
+  state.phase = "PLAYING";
+  state.turnPhase = "AWAITING_ACTION";
+  state.log.push({
+    at: new Date().toISOString(),
+    message: `Temporada ${state.season} iniciada.`,
+  });
 
   return state;
 }
