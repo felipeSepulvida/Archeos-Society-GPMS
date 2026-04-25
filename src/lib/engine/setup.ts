@@ -1,8 +1,13 @@
-import { buildProfessionPool, getSites } from "./config";
+import {
+  buildProfessionPool,
+  getSites,
+  NUMBER_OF_MONKEYS,
+} from "./config";
 import { createRng, shuffleInPlace, type Rng } from "./rng";
 import type {
   Card,
   GameState,
+  MonkeyCard,
   PlayerState,
   ProfessionCard,
 } from "@/types/game";
@@ -35,15 +40,47 @@ function buildFreshProfessionDeck(rng: Rng): ProfessionCard[] {
 }
 
 /**
+ * Insere os macacos na metade INFERIOR do baralho (RF09 e p. 4 do livro):
+ * "Split the remaining deck into 2 stacks of similar size, shuffle the 3
+ * monkey cards into one of the stacks, then put the stack WITHOUT the
+ * monkey cards ON TOP of the deck WITH the monkey cards."
+ *
+ * Convenção interna: o topo do baralho está no FINAL do array
+ * (i.e., array[length-1] é a próxima carta a ser comprada).
+ * Portanto a "metade inferior" corresponde aos índices iniciais do array.
+ */
+export function shuffleMonkeysIntoBottomHalf(
+    deckProfessions: ProfessionCard[],
+    rng: Rng,
+): Card[] {
+  const monkeyId = makeIdGen("m");
+  const monkeys: MonkeyCard[] = Array.from({ length: NUMBER_OF_MONKEYS }, () => ({
+    id: monkeyId(),
+    kind: "MONKEY",
+  }));
+
+  const total = deckProfessions.length;
+  const bottomSize = Math.floor(total / 2);
+  const bottom = deckProfessions.slice(0, bottomSize);
+  const top = deckProfessions.slice(bottomSize);
+
+  // Embaralha macacos NA metade inferior
+  const bottomWithMonkeys: Card[] = [...bottom, ...monkeys];
+  shuffleInPlace(bottomWithMonkeys, rng);
+
+  // Topo do array = topo do baralho. Bottom (com macacos) fica no início,
+  // top (sem macacos) fica no final → próximas compras saem da metade SEM macacos.
+  return [...bottomWithMonkeys, ...top];
+}
+
+/**
  * Cria o estado inicial de uma partida nova.
  * - 2 a 3 jogadores
  * - 6 sítios
  * - 1 carta inicial na mão de cada jogador
  * - Display de (numPlayers + 2) cartas viradas para cima
+ * - Macacos embaralhados na metade inferior do baralho
  * - 2 temporadas (para 2-3 jogadores)
- *
- * NOTA: Macacos ainda não inseridos no baralho — será implementado
- * na tarefa "Cartas do Macaco".
  */
 export function createInitialGame(params: {
   gameId: string;
@@ -93,8 +130,8 @@ export function createInitialGame(params: {
     if (!c) throw new Error("Baralho insuficiente para o display inicial");
     display.push(c);
   }
-
-  const deck: Card[] = [...fresh];
+  // Insere os macacos na metade inferior do que sobrou
+  const deck = shuffleMonkeysIntoBottomHalf(fresh, rng);
 
   const state: GameState = {
     id: gameId,
@@ -121,14 +158,13 @@ export function createInitialGame(params: {
 }
 
 /**
- * Inicia uma nova temporada. Devolve baralho refeito, novo display e mãos
- * zeradas com 1 carta para cada jogador.
+ * Inicia uma nova temporada (chamada quando a temporada anterior termina e
+ * ainda há temporadas para jogar). Devolve baralho refeito, novo display,
+ * macacos reembaralhados e mãos zeradas com 1 carta para cada jogador.
  *
  * Importante: veículos e pontuações NÃO são resetados; expedições jogadas
- * são removidas (cartas voltam ao baralho).
- *
- * NOTA: Macacos ainda não são reinseridos no baralho — será tratado pela
- * tarefa "Cartas do Macaco".
+ * são removidas (cartas voltam ao baralho), exceto na última temporada
+ * (mas essa função não é chamada na última temporada).
  */
 export function startNewSeason(state: GameState, seed?: number): GameState {
   const rng = createRng(seed ?? Math.floor(Math.random() * 2 ** 31));
@@ -176,7 +212,10 @@ export function startNewSeason(state: GameState, seed?: number): GameState {
     display.push(c);
   }
 
-  state.deck = [...allProfCards];
+  // Insere macacos na metade inferior
+  const deck = shuffleMonkeysIntoBottomHalf(allProfCards, rng);
+
+  state.deck = deck;
   state.display = display;
   state.monkeysRevealed = 0;
   state.season += 1;
