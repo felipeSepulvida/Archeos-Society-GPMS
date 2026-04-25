@@ -33,6 +33,32 @@ function findCardIndex(cards: Card[], cardId: string): number {
   return cards.findIndex((c) => c.id === cardId);
 }
 
+/**
+ * Compra a próxima carta do topo do baralho. Se for um Macaco, revela-o,
+ * incrementa o contador e tenta de novo. Retorna a carta de profissão
+ * comprada, ou `null` se a temporada terminou (3 macacos revelados).
+ *
+ * Atenção: ao revelar o 3º macaco, a temporada termina IMEDIATAMENTE.
+ */
+function drawFromDeckHandlingMonkeys(state: GameState): ProfessionCard | null {
+  while (state.deck.length > 0) {
+    const card = state.deck.pop()!; // topo do baralho = final do array
+    if (card.kind === "MONKEY") {
+      state.monkeysRevealed += 1;
+      logEvent(
+          state,
+          `Macaco revelado (${state.monkeysRevealed}/3).`,
+      );
+      if (state.monkeysRevealed >= 3) {
+        return null;
+      }
+      continue;
+    }
+    return card;
+  }
+  return null;
+}
+
 // =============================================================================
 // Aplicação de ações
 // =============================================================================
@@ -103,9 +129,15 @@ function doGainFromDeck(state: GameState): GameState {
         "Mão cheia (10 cartas). Você deve lançar uma expedição.",
     );
   }
-  const drawn = state.deck.pop();
-  if (!drawn) {
-    throw new Error("Baralho vazio.");
+  const drawn = drawFromDeckHandlingMonkeys(state);
+  if (drawn === null) {
+    // 3º macaco saiu durante esta compra → fim imediato da temporada.
+    logEvent(
+        state,
+        `${player.name} revelou o 3º macaco. Fim da temporada.`,
+        player.id,
+    );
+    return finalizeSeason(state, player.id);
   }
   player.hand.push(drawn);
   logEvent(
@@ -113,6 +145,26 @@ function doGainFromDeck(state: GameState): GameState {
       `${player.name} comprou uma carta do baralho.`,
       player.id,
   );
+
+  // Regra do livro: "After drawing a card from the deck, draw 1 extra card
+  // if the display is empty." (com limite de 10 na mão)
+  if (state.display.length === 0 && player.hand.length < MAX_HAND_SIZE) {
+    const extra = drawFromDeckHandlingMonkeys(state);
+    if (extra === null) {
+      logEvent(
+          state,
+          `${player.name} revelou o 3º macaco. Fim da temporada.`,
+          player.id,
+      );
+      return finalizeSeason(state, player.id);
+    }
+    player.hand.push(extra);
+    logEvent(
+        state,
+        `${player.name} comprou uma carta extra (fileira vazia).`,
+        player.id,
+    );
+  }
 
   return endTurn(state);
 }
