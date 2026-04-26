@@ -1,3 +1,6 @@
+import {
+  pointsForExpeditionSize,
+} from "./config";
 import { startNewSeason } from "./setup";
 import { validateExpedition } from "./validation";
 import type {
@@ -8,6 +11,7 @@ import type {
   PlayedExpedition,
   PlayerState,
   ProfessionCard,
+  Role,
   Site,
 } from "@/types/game";
 
@@ -267,10 +271,67 @@ function doPlayExpedition(
     }
   }
 
+  // RF08 - Habilidade da profissão líder
+  applyLeaderRoleEffect(state, player, leader, expeditionSize);
+
   // Devolve cartas restantes ao display (RF06)
   state.display.push(...remaining);
 
   return endTurn(state);
+}
+
+// =============================================================================
+// RF08 - Efeitos de profissões líder (imediatos)
+// =============================================================================
+
+function applyLeaderRoleEffect(
+    state: GameState,
+    player: PlayerState,
+    leader: ProfessionCard,
+    expeditionSize: number,
+) {
+  switch (leader.role) {
+    case "BOTANIST":
+      applyBotanistEffect(state, player, expeditionSize);
+      break;
+    case "PHOTOGRAPHER":
+      // Efeito é resolvido apenas no FIM da temporada (conta +1 carta).
+      break;
+    case "STUDENT":
+      // Restrição já aplicada (não avança trilha).
+      break;
+    default:
+      // Linguista, Curador e Cartógrafo serão implementados em commits seguintes.
+      break;
+  }
+}
+
+/**
+ * BOTANIST (livro p. 8 — IMMEDIATELY):
+ * Compara tamanho desta expedição com a expedição que detém o quadro.
+ * Se >= , ganha 2 pontos e fica com o quadro. Pode tomar de si mesmo.
+ */
+function applyBotanistEffect(
+    state: GameState,
+    player: PlayerState,
+    expeditionSize: number,
+) {
+  const currentHolder = state.players.find((p) => p.hasBotanistFrame);
+  const heldSize = currentHolder?.botanistFrameSize ?? 0;
+  if (expeditionSize >= heldSize) {
+    if (currentHolder && currentHolder.id !== player.id) {
+      currentHolder.hasBotanistFrame = false;
+      currentHolder.botanistFrameSize = 0;
+    }
+    player.hasBotanistFrame = true;
+    player.botanistFrameSize = expeditionSize;
+    player.score += 2;
+    logEvent(
+        state,
+        `${player.name} pega o quadro do Botânico (+2 pts).`,
+        player.id,
+    );
+  }
 }
 
 // =============================================================================
@@ -335,6 +396,16 @@ export function finalizeSeason(state: GameState, triggererId: string): GameState
   for (const p of state.players) p.hand = [];
   state.display = [];
 
+  // Efeitos de fim-de-temporada do Botânico (dono do quadro ganha +2).
+  for (const p of state.players) {
+    if (p.hasBotanistFrame) {
+      p.score += 2;
+      p.hasBotanistFrame = false;
+      p.botanistFrameSize = 0;
+      logEvent(state, `${p.name} ganha 2 pts (quadro do Botânico).`, p.id);
+    }
+  }
+
   // Pontos por sítios (posição do veículo).
   for (const p of state.players) {
     let total = 0;
@@ -346,6 +417,23 @@ export function finalizeSeason(state: GameState, triggererId: string): GameState
     logEvent(
         state,
         `${p.name} ganha ${total} pts pelas posições nas trilhas.`,
+        p.id,
+    );
+  }
+
+  // Pontos por expedições desta temporada (Fotógrafo conta +1 no tamanho).
+  for (const p of state.players) {
+    let total = 0;
+    for (const exp of p.playedExpeditions) {
+      if (exp.season !== state.season) continue;
+      let size = 1 + exp.followers.length;
+      if (exp.leader.role === "PHOTOGRAPHER") size += 1;
+      total += pointsForExpeditionSize(size);
+    }
+    p.score += total;
+    logEvent(
+        state,
+        `${p.name} ganha ${total} pts pelas expedições desta temporada.`,
         p.id,
     );
   }
