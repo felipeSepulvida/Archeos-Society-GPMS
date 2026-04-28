@@ -275,7 +275,7 @@ function doPlayExpedition(
   }
 
   // RF08 - Habilidade da profissão líder
-  applyLeaderRoleEffect(state, player, leader, expeditionSize);
+  applyLeaderRoleEffect(state, player, leader, expeditionSize, action);
 
   // Devolve cartas restantes ao display (RF06)
   state.display.push(...remaining);
@@ -292,6 +292,7 @@ function applyLeaderRoleEffect(
     player: PlayerState,
     leader: ProfessionCard,
     expeditionSize: number,
+    action: Extract<GameAction, { type: "PLAY_EXPEDITION" }>,
 ) {
   switch (leader.role) {
     case "BOTANIST":
@@ -300,14 +301,17 @@ function applyLeaderRoleEffect(
     case "LINGUIST":
       applyLinguistEffect(state, player, expeditionSize);
       break;
+    case "CURATOR":
+      applyCuratorEffect(state, player, leader, action);
+      break;
     case "PHOTOGRAPHER":
       // Efeito é resolvido apenas no FIM da temporada (conta +1 carta).
       break;
     case "STUDENT":
       // Restrição já aplicada (não avança trilha).
       break;
-    default:
-      // Curador e Cartógrafo serão implementados em commits seguintes.
+    case "CARTOGRAPHER":
+      // Bônus tratado em doPlayExpedition (fase do turno).
       break;
   }
 }
@@ -396,6 +400,34 @@ function chooseSiteForLinguistAdvance(
     }
   }
   return best;
+}
+
+/**
+ * CURATOR (livro p. 8 — IMMEDIATELY):
+ * Coleta uma relíquia da cor do líder no museu (uma cor por vez).
+ * Bônus do museu é aplicado no fim do jogo.
+ */
+function applyCuratorEffect(
+    state: GameState,
+    player: PlayerState,
+    leader: ProfessionCard,
+    action: Extract<GameAction, { type: "PLAY_EXPEDITION" }>,
+) {
+  if (action.useCuratorEffect === false) return;
+  if (player.curatorRelics.includes(leader.color)) {
+    logEvent(
+        state,
+        `${player.name} já tem uma relíquia ${leader.color} no museu.`,
+        player.id,
+    );
+    return;
+  }
+  player.curatorRelics.push(leader.color);
+  logEvent(
+      state,
+      `${player.name} coleta relíquia ${leader.color} no museu.`,
+      player.id,
+  );
 }
 
 // =============================================================================
