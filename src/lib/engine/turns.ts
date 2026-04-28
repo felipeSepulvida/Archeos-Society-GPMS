@@ -1,4 +1,7 @@
 import {
+  LINGUIST_ARTIFACT_SPACES,
+  LINGUIST_END_OF_SEASON_BONUS,
+  LINGUIST_TRACK_LENGTH,
   pointsForExpeditionSize,
 } from "./config";
 import { startNewSeason } from "./setup";
@@ -294,6 +297,9 @@ function applyLeaderRoleEffect(
     case "BOTANIST":
       applyBotanistEffect(state, player, expeditionSize);
       break;
+    case "LINGUIST":
+      applyLinguistEffect(state, player, expeditionSize);
+      break;
     case "PHOTOGRAPHER":
       // Efeito é resolvido apenas no FIM da temporada (conta +1 carta).
       break;
@@ -301,7 +307,7 @@ function applyLeaderRoleEffect(
       // Restrição já aplicada (não avança trilha).
       break;
     default:
-      // Linguista, Curador e Cartógrafo serão implementados em commits seguintes.
+      // Curador e Cartógrafo serão implementados em commits seguintes.
       break;
   }
 }
@@ -332,6 +338,64 @@ function applyBotanistEffect(
         player.id,
     );
   }
+}
+
+/**
+ * LINGUIST (livro p. 8 — IMMEDIATELY):
+ * Avança N espaços na trilha do Linguista (N = tamanho da expedição).
+ * Para cada espaço com artefato em que parar OU passar, avança 1 veículo
+ * em qualquer sítio (escolha automática: o sítio com menor pontuação atual
+ * onde ele AINDA pode avançar; se nenhum, ignora).
+ */
+function applyLinguistEffect(
+    state: GameState,
+    player: PlayerState,
+    expeditionSize: number,
+) {
+  const start = player.linguistPosition;
+  const end = Math.min(start + expeditionSize, LINGUIST_TRACK_LENGTH);
+  let artifactsCrossed = 0;
+  for (let pos = start + 1; pos <= end; pos++) {
+    if (LINGUIST_ARTIFACT_SPACES.has(pos)) artifactsCrossed += 1;
+  }
+  player.linguistPosition = end;
+  logEvent(
+      state,
+      `${player.name} avançou para a posição ${end} na trilha do Linguista.`,
+      player.id,
+  );
+
+  // Para cada artefato cruzado, escolhe um sítio para avançar.
+  for (let i = 0; i < artifactsCrossed; i++) {
+    const candidate = chooseSiteForLinguistAdvance(state, player);
+    if (!candidate) break;
+    const cur = player.vehiclePositions[candidate.id] ?? 0;
+    if (cur < candidate.pointsBySpace.length - 1) {
+      player.vehiclePositions[candidate.id] = cur + 1;
+      logEvent(
+          state,
+          `${player.name} avançou veículo em ${candidate.name} (artefato).`,
+          player.id,
+      );
+    }
+  }
+}
+
+function chooseSiteForLinguistAdvance(
+    state: GameState,
+    player: PlayerState,
+): Site | null {
+  let best: Site | null = null;
+  let bestScore = Infinity;
+  for (const s of state.sites) {
+    const cur = player.vehiclePositions[s.id] ?? 0;
+    if (cur >= s.pointsBySpace.length - 1) continue;
+    if (cur < bestScore) {
+      bestScore = cur;
+      best = s;
+    }
+  }
+  return best;
 }
 
 // =============================================================================
@@ -403,6 +467,24 @@ export function finalizeSeason(state: GameState, triggererId: string): GameState
       p.hasBotanistFrame = false;
       p.botanistFrameSize = 0;
       logEvent(state, `${p.name} ganha 2 pts (quadro do Botânico).`, p.id);
+    }
+  }
+
+  // Efeito de fim-de-temporada do Linguista (mais avançado na trilha).
+  let maxLing = -1;
+  for (const p of state.players) {
+    if (p.linguistPosition > maxLing) maxLing = p.linguistPosition;
+  }
+  if (maxLing > 0) {
+    for (const p of state.players) {
+      if (p.linguistPosition === maxLing) {
+        p.score += LINGUIST_END_OF_SEASON_BONUS;
+        logEvent(
+            state,
+            `${p.name} ganha ${LINGUIST_END_OF_SEASON_BONUS} pts (mais avançado na trilha do Linguista).`,
+            p.id,
+        );
+      }
     }
   }
 
