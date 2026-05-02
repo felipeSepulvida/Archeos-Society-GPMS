@@ -1,0 +1,171 @@
+/* =============================================================================
+   Tema visual: Diário de Expedição
+   Paleta inspirada em mapas envelhecidos, ouro patinado e tinta nanquim.
+   Tipografia: Cormorant Garamond (serifa de display) + Source Serif (corpo).
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+:root {
+  --paper:        #f3e8d2;
+  --paper-2:      #ead7b5;
+  --paper-edge:   #c9b48b;
+  --ink:          #2b1d10;
+  --ink-soft:     #56432b;
+  --gold:         #b08a3a;
+  --gold-deep:    #7a5b1f;
+  --rust:         #8a3a1d;
+  --moss:         #4a5a2b;
+  --teal-deep:    #1f3d4a;
+
+  /* Cores das regiões (próximas das do jogo) */
+  --region-red:    #b94324;
+  --region-green:  #4a6f2a;
+  --region-blue:   #2c5b78;
+  --region-yellow: #c98c1a;
+  --region-pink:   #a14c6c;
+  --region-purple: #5a3970;
+
+  --shadow-soft: 0 1px 2px rgba(43, 29, 16, 0.12), 0 4px 14px rgba(43, 29, 16, 0.10);
+  --shadow-deep: 0 2px 4px rgba(43, 29, 16, 0.20), 0 16px 32px rgba(43, 29, 16, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Textura de papel envelhecido em todo fundo */
+body {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at top left, rgba(176, 138, 58, 0.08), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(122, 91, 31, 0.10), transparent 55%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(86, 67, 43, 0.025) 0px,
+      rgba(86, 67, 43, 0.025) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  margin: 0 0 0.4em 0;
+}
+
+h1 {
+  font-size: 2.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: 1.6rem;
+  border-bottom: 1px solid var(--paper-edge);
+  padding-bottom: 0.3em;
+}
+
+button {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: 1px solid var(--gold-deep);
+  background: linear-gradient(180deg, #f3e3b8, #d9bc7a);
+  color: var(--ink);
+  padding: 0.5em 1.1em;
+  border-radius: 2px;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f6e9c2, #e2c682);
+  transform: translateY(-1px);
+}
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 0 0 1px var(--gold-deep), inset 0 1px 3px rgba(0,0,0,0.2);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: linear-gradient(180deg, #4a5a2b, #344020);
+  color: #f3e8d2;
+  border-color: #2a331a;
+}
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #5a6e34, #3d4d24);
+}
+
+button.danger {
+  background: linear-gradient(180deg, #b94324, #7a2a14);
+  color: #f3e8d2;
+  border-color: #5a1f0e;
+}
+
+input, select {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1rem;
+  border: 1px solid var(--paper-edge);
+  background: rgba(255, 250, 235, 0.6);
+  color: var(--ink);
+  padding: 0.4em 0.7em;
+  border-radius: 2px;
+}
+
+a {
+  color: var(--rust);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--rust);
+}
+a:hover { color: var(--gold-deep); }
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Painel "papel" reutilizável */
+.panel {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding: 18px 22px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 5% 5%, rgba(86,67,43,0.10), transparent 30%),
+    radial-gradient(ellipse at 95% 95%, rgba(86,67,43,0.10), transparent 30%);
+  border-radius: 3px;
+}
+
+.label-tiny {
+  font-family: 'Special Elite', 'Source Serif 4', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
