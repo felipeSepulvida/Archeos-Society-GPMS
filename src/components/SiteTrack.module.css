@@ -1,0 +1,119 @@
+.wrap {
+  --site-color: #888;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-left: 6px solid var(--site-color);
+  border-radius: 3px;
+  padding: 10px 14px 14px;
+  box-shadow: var(--shadow-soft);
+}
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.headerLeft { display: flex; align-items: center; gap: 10px; }
+.colorDot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--site-color);
+  border: 2px solid var(--gold-deep);
+}
+.name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+.region {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.track {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  align-items: stretch;
+}
+
+.space {
+  background: rgba(255, 250, 235, 0.6);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  min-height: 92px;
+  position: relative;
+  overflow: hidden; /* garante que a estrela decorativa não escape do slot */
+}
+
+.spaceTop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px 2px;
+  position: relative;
+  overflow: hidden;
+}
+.points {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ink);
+  position: relative;
+  z-index: 2;
+}
+.pointsStar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  color: rgba(176, 138, 58, 0.30);
+  z-index: 1;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.spaceMid {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  padding: 2px;
+  min-height: 30px;
+}
+
+.vehicle {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  color: #f3e8d2;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0,0,0,0.3);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.spaceBottom {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.threshold {
+  display: flex; align-items: center; gap: 2px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+.thresholdNum { font-weight: 600; }
+.thresholdArrow { color: var(--gold-deep); }
