@@ -1,0 +1,578 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 14px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.topBar {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  box-shadow: var(--shadow-soft);
+}
+.titleArea {
+  text-align: center;
+}
+.eyebrow {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  background: linear-gradient(180deg, var(--gold-deep), var(--ink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.meta {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.dot { margin: 0 6px; opacity: 0.4; }
+
+.viewerSwitch {
+  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ============================================================ Layout ===== */
+.layout {
+  display: grid;
+  grid-template-columns: 1.05fr 1.4fr 0.85fr;
+  gap: 14px;
+}
+
+.colTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  border-bottom: 1px solid var(--paper-edge);
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+
+.muted {
+  color: var(--ink-soft);
+  font-weight: 400;
+  font-size: 0.85em;
+  font-family: 'Source Serif 4', serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.colLeft, .colCenter, .colRight {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================================ Display ===== */
+.displayArea {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.cardsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 170px;
+  align-items: flex-start;
+  padding: 4px;
+}
+
+.emptyHint {
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 20px 8px;
+}
+
+/* ============================================================ Expedições ===== */
+.expeditionsArea {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-soft);
+  flex: 1;
+}
+
+.expGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.expCol {
+  background: rgba(255, 250, 235, 0.4);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding: 8px;
+  min-height: 140px;
+}
+.expCol.expHi {
+  border-color: var(--gold-deep);
+  background: rgba(243, 227, 184, 0.45);
+}
+.expColName {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.expStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.expGroup {
+  position: relative;
+}
+.expBadge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.expSeason {
+  background: var(--paper-edge);
+  padding: 1px 5px;
+  border-radius: 1px;
+  color: var(--ink);
+}
+.expCards {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+/* Sobreposição entre cartas empilhadas: cartas pequenas têm 116px de altura;
+   subindo 80px deixamos ~36px visíveis em cada carta abaixo do líder,
+   o que mostra a banda colorida (cor da região) + topo do emblema. */
+.expFollower {
+  margin-top: -80px;
+}
+
+/* ============================================================ Linguista ===== */
+.linguistTrack {
+  padding: 10px 14px;
+}
+.linguistTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.linguistSpaces {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 3px;
+}
+.linguistSlot {
+  background: rgba(255, 250, 235, 0.5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px;
+}
+.linguistArtifact {
+  background: linear-gradient(180deg, rgba(176, 138, 58, 0.3), rgba(122, 91, 31, 0.18));
+  border-color: var(--gold-deep);
+}
+.linguistNum {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.linguistVehicles {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2px;
+}
+.linguistVehicle {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 0.65rem;
+  color: #f3e8d2;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(0,0,0,0.3);
+}
+
+/* ============================================================ Log ===== */
+.logPanel {
+  flex: 1;
+  min-height: 200px;
+  max-height: 320px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.logTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--paper-edge);
+  padding-bottom: 4px;
+}
+.logList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.86rem;
+  overflow-y: auto;
+}
+.logList li {
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(86,67,43,0.2);
+  color: var(--ink-soft);
+}
+.logList li:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ============================================================ Bottom Bar ===== */
+.bottomBar {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  box-shadow: var(--shadow-deep);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10; /* fica acima do conteúdo do tabuleiro ao rolar */
+}
+
+.handArea {}
+.handHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+.handName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.handCount {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+}
+.handCards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-height: 170px;
+}
+
+.actionsPanel {
+  background: rgba(255, 250, 235, 0.4);
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.actionsTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.actionsHint {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.actionsHintInline {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-left: 12px;
+}
+
+.bigActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.bigActions button {
+  font-size: 1.05rem;
+  padding: 0.7em 1.4em;
+}
+
+.bondChoices {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.roleEffectBox {
+  background: rgba(176, 138, 58, 0.12);
+  border: 1px dashed var(--gold-deep);
+  border-radius: 2px;
+  padding: 8px 10px;
+  margin: 10px 0;
+}
+.roleEffectText {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-top: 2px;
+}
+
+.launchActions {
+  display: flex;
+  gap: 8px;
+}
+.launchActions button { flex: 1; padding: 0.7em 1em; }
+
+.waitingTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.waitingMsg {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.errorBox {
+  margin-top: 10px;
+  background: rgba(185, 67, 36, 0.15);
+  border: 1px solid var(--rust);
+  color: var(--rust);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+
+/* =============================================================================
+   Modais (Fim de Jogo + Macaco)
+   ============================================================================= */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 29, 16, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: overlayFadeIn 0.2s ease;
+}
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal de Fim de Jogo */
+.gameOverModal {
+  max-width: 520px;
+  width: 90%;
+  padding: 32px;
+  text-align: center;
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPopIn {
+  from { transform: translateY(12px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.gameOverHeading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  margin: 6px 0 16px;
+}
+
+.gameOverRanking {
+  margin: 12px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gameOverRow {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(255, 250, 235, 0.5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  font-family: 'Source Serif 4', serif;
+}
+.gameOverRow:first-child {
+  background: linear-gradient(180deg, #f3e3b8, #d9bc7a);
+  border-color: var(--gold-deep);
+}
+.gameOverRank {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--gold-deep);
+}
+.gameOverName {
+  text-align: left;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.gameOverScore {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.gameOverActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Botão flutuante para reabrir o popup de fim de jogo */
+.reopenGameOver {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.7em 1.3em;
+  background: linear-gradient(180deg, #f3e3b8, #d9bc7a);
+  border: 2px solid var(--gold-deep);
+  color: var(--ink);
+  box-shadow: var(--shadow-deep);
+}
+.reopenGameOver:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f6e9c2, #e2c682);
+}
+
+/* Modal de Macaco */
+.monkeyModal {
+  max-width: 460px;
+  width: 90%;
+  padding: 28px 32px 24px;
+  text-align: center;
+  background: linear-gradient(180deg, #f3e8d2, #ead7b5) !important;
+  border: 2px solid var(--gold-deep) !important;
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.monkeyModal::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed rgba(122, 91, 31, 0.4);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.monkeyIconBig {
+  font-size: 4.5rem;
+  margin-bottom: 6px;
+  animation: monkeyShake 0.5s ease;
+}
+@keyframes monkeyShake {
+  0%, 100% { transform: rotate(0); }
+  25%      { transform: rotate(-8deg) scale(1.05); }
+  75%      { transform: rotate(8deg) scale(1.05); }
+}
+
+.monkeyHeading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 4px 0 12px;
+  color: var(--gold-deep);
+}
+
+.monkeyText {
+  font-family: 'Source Serif 4', serif;
+  font-size: 1rem;
+  color: var(--ink);
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+.monkeyActions {
+  display: flex;
+  justify-content: center;
+}
+.monkeyActions button {
+  padding: 0.6em 2em;
+}
