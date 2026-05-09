@@ -39,6 +39,7 @@ export default function GamePage() {
   const [bond, setBond] = useState<{ type: "COLOR"; color: Color } | { type: "ROLE"; role: Role } | null>(null);
 
   // Popups
+  const [gameOverDismissed, setGameOverDismissed] = useState(false);
   const [monkeyPopup, setMonkeyPopup] = useState<{ count: number; final: boolean } | null>(null);
 
   const viewerId = sp.get("as") ?? game?.players[0].id ?? "p1";
@@ -195,6 +196,9 @@ export default function GamePage() {
   // ===========================================================================
   // Render
   // ===========================================================================
+
+  const isGameEnd = game.phase === "GAME_END";
+  const winner = isGameEnd ? game.players.find((p) => p.id === game.winnerId) : null;
 
   return (
       <main className={styles.main}>
@@ -405,6 +409,54 @@ export default function GamePage() {
             </section>
         )}
 
+
+        {/* Popup de Fim de Jogo — fechável; pode ser reaberto via botão */}
+        {isGameEnd && winner && !gameOverDismissed && (
+            <section
+                className={styles.modalOverlay}
+                onClick={() => setGameOverDismissed(true)}
+            >
+              <div
+                  className={`panel ${styles.gameOverModal}`}
+                  onClick={(e) => e.stopPropagation()}
+              >
+                <div className="label-tiny">Fim de Jogo</div>
+                <h2 className={styles.gameOverHeading}>
+                  🏆 {winner.name} venceu!
+                </h2>
+                <div className={styles.gameOverRanking}>
+                  {[...game.players]
+                      .sort((a, b) => b.score - a.score)
+                      .map((p, i) => (
+                          <div key={p.id} className={styles.gameOverRow}>
+                            <span className={styles.gameOverRank}>#{i + 1}</span>
+                            <span className={styles.gameOverName}>{p.name}</span>
+                            <span className={styles.gameOverScore}>{p.score} pts</span>
+                          </div>
+                      ))}
+                </div>
+                <div className={styles.gameOverActions}>
+                  <button onClick={() => setGameOverDismissed(true)}>
+                    Fechar (ver diário)
+                  </button>
+                  <button className="primary" onClick={() => router.push("/")}>
+                    Nova Partida
+                  </button>
+                </div>
+              </div>
+            </section>
+        )}
+
+        {/* Botão flutuante para reabrir o popup de fim de jogo */}
+        {isGameEnd && winner && gameOverDismissed && (
+            <button
+                className={styles.reopenGameOver}
+                onClick={() => setGameOverDismissed(false)}
+                title="Reabrir resultado"
+            >
+              🏆 Resultado
+            </button>
+        )}
       </main>
   );
 }
